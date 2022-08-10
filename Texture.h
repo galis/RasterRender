@@ -1,0 +1,10 @@
+//
+// Created by galismac on 10/8/2022.
+//
+
+#ifndef RASTERIZATIONRENDER_TEXTURE_H
+#define RASTERIZATIONRENDER_TEXTURE_H
+
+
+
+#endif //RASTERIZATIONRENDER_TEXTURE_H
