@@ -14,9 +14,16 @@ std::cout << glm::to_string(modelMatrix) << std::endl;
 
 ## 判断点在三角形中
 
+## 计算视图矩阵
+
+## 计算观察矩阵
+
+## 计算投影矩阵
+
 ## 计算重心坐标
 
 [https://blog.csdn.net/wangjiangrong/article/details/115326930]
+
 ```c++3种几何意义
 //1.面积之比 
 //2.i*PA+j*PB+k*PC = 0; 
@@ -30,3 +37,5 @@ std::cout << glm::to_string(modelMatrix) << std::endl;
 ## msaa
 
 ## fsaa
+
+## 反射/折射

@@ -20,6 +20,11 @@ void Rasterizer::setProjectionMatrix(glm::mat4x4 &matrix) {
 
 void Rasterizer::render(Model &model) {
 
+    //处理zbuffer
+    if (zbuffer.empty()) {
+        zbuffer.resize(viewport[2] * viewport[3], 1.f);
+    }
+
     //cal mvp
     mvpMatrix = projMatrix * viewMatrix * modelMatrix;
 
@@ -101,13 +106,26 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
             cur.y = y;
             //上色。。。
             if (isInTriangle(cur, windowPos)) {
-                int color = 0xffff0000;
+                glm::vec4 color(0xff, 0xff, 0, 0);//ARGB
                 if (!mesh.textures.empty()) {
                     auto[a, b, c] = calZhongXinCoord(cur, windowPos);
                     glm::vec2 uv = a * faceVerts[0].TexCoords + b * faceVerts[1].TexCoords + c * faceVerts[2].TexCoords;
-                    color = mesh.textures[0].getColor(uv);
+                    glm::vec3 normal = a * faceVerts[0].Normal + b * faceVerts[1].Normal + c * faceVerts[2].Normal;
+                    glm::vec3 pos = a * faceVerts[0].Position + b * faceVerts[1].Position + c * faceVerts[2].Position;
+                    int zbufferIdx = x + width * y;
+                    if (pos.z < zbuffer[zbufferIdx]) {
+                        zbuffer[zbufferIdx] = pos.z;
+                        color = mesh.textures[0].getColor(uv);
+                        glm::vec3 dirlight(0, 0, -1);
+                        float s = max(0.0f, glm::dot(glm::normalize(dirlight), glm::normalize(normal)));
+                        std::cout << s << std::endl;
+                        float ambient = 0.2f;
+                        float diffuse = s;
+                        color *= ambient + diffuse;
+                        color[3] = 255;
+                        resultMat.at<Vec4b>(height - y, x) = Vec4b(color[0], color[1], color[2], color[3]);
+                    }
                 }
-                resultMat.at<int>(height - y, x) = color;
             }
         }
     }

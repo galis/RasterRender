@@ -20,7 +20,7 @@ private:
     glm::mat4x4 modelMatrix, viewMatrix, projMatrix,mvpMatrix;
     glm::vec4 viewport;
     bool isMsaa;
-    vector<int> zbuffer;
+    vector<float> zbuffer;
 
     bool isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals);
 

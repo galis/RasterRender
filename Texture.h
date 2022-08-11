@@ -25,7 +25,7 @@ public:
     void load();
 
 
-    int getColor(glm::vec2& uv);
+    glm::vec4 getColor(glm::vec2& uv);
 };
 
 
