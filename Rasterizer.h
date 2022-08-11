@@ -24,7 +24,9 @@ private:
 
     bool isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals);
 
-    void renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat);
+    void renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat);
+
+    std::tuple<float,float,float> calZhongXinCoord(glm::vec2 &pos, vector<glm::vec2> &verticals);
 
 public:
 

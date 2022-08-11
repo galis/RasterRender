@@ -18,13 +18,17 @@ using namespace std;
 
 class Model {
 private:
+    string dir;
     bool loadStatus;
     string modelPath;
     vector<Mesh> meshs;
+    unordered_map<string, Texture> textures;
 
     void processNode(AiNode *node, const AiScene *scene);
 
     Mesh processMesh(AiMesh *mesh, const AiScene *scene);
+
+    vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName);
 
 public:
     Model(string &path);
@@ -41,7 +45,8 @@ public:
 
     friend std::ostream &operator<<(std::ostream &os, const Model &model);
 
-    const vector<Mesh> &getMeshs() const;
+    vector<Mesh> &getMeshs();
+
 };
 
 

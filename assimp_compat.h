@@ -8,3 +8,4 @@ typedef struct aiFace AiFace;
 typedef struct aiTexture AiTexture;
 typedef struct aiMaterial AiMaterial;
 typedef struct aiNode AiNode;
+typedef struct aiString AiString;

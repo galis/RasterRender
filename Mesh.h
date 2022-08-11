@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include "Texture.h"
 
 using namespace std;
 
@@ -32,13 +33,6 @@ public:
     float m_Weights[MAX_BONE_INFLUENCE];
 
     friend ostream &operator<<(ostream &os, const Vertex &vertex);
-};
-
-class Texture {
-public:
-    unsigned int id;
-    std::string type;
-    std::string path;
 };
 
 class Mesh {

@@ -24,7 +24,7 @@ void Rasterizer::render(Model &model) {
     mvpMatrix = projMatrix * viewMatrix * modelMatrix;
 
     cv::Mat resultMat(cv::Size(viewport[2], viewport[3]), CV_8UC4, cv::Scalar(0, 0, 0, 0));
-    for (const Mesh &mesh:model.getMeshs()) {
+    for (Mesh &mesh:model.getMeshs()) {
         vector<glm::vec2> vertexs(mesh.vertices.size());
         for (int i = 0; i < mesh.facesNum; i++) {
             renderFace(mesh, i, resultMat);
@@ -56,7 +56,10 @@ bool Rasterizer::isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals) {
            getDir(pos, verticals[2], verticals[0]);
 }
 
-void Rasterizer::renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
+void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
+
+    int width = viewport[2];
+    int height = viewport[3];
 
     //初始化三角形顶点
     vector<Vertex> faceVerts(3);
@@ -69,14 +72,14 @@ void Rasterizer::renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
     for (int i = 0; i < faceVerts.size(); i++) {
         //裁剪坐标系
         glm::vec4 clipPosition = mvpMatrix * glm::vec4(faceVerts[i].Position, 1.0);
-        //规范化坐标系
+        //齐次整除
         clipPosition.x /= clipPosition.w;
         clipPosition.y /= clipPosition.w;
         clipPosition.z /= clipPosition.w;
         //屏幕坐标系
         glm::vec2 screenPosition;
-        screenPosition.x = (clipPosition.x + 1) * 0.5 * viewport[2];
-        screenPosition.y = (1.0 - (clipPosition.y + 1) * 0.5) * viewport[3];
+        screenPosition.x = (clipPosition.x + 1) * 0.5 * width;
+        screenPosition.y = (clipPosition.y + 1) * 0.5 * height;
         windowPos[i] = screenPosition;
         Platform::Debug("modelPos#" + glm::to_string(faceVerts[i].Position));
         Platform::Debug("clipPos#" + glm::to_string(clipPosition));
@@ -84,7 +87,7 @@ void Rasterizer::renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
     }
 
     //计算roi
-    float xMin = viewport[2], yMin = viewport[3], xMax = -1, yMax = -1;
+    float xMin = width, yMin = height, xMax = -1, yMax = -1;
     for (glm::vec2 &ver:windowPos) {
         xMin = floor(min(xMin, ver.x));
         yMin = floor(min(yMin, ver.y));
@@ -98,7 +101,13 @@ void Rasterizer::renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
             cur.y = y;
             //上色。。。
             if (isInTriangle(cur, windowPos)) {
-                resultMat.at<int>(y, x) = 0xffff0000 | (30 * faceIdx);
+                int color = 0xffff0000;
+                if (!mesh.textures.empty()) {
+                    auto[a, b, c] = calZhongXinCoord(cur, windowPos);
+                    glm::vec2 uv = a * faceVerts[0].TexCoords + b * faceVerts[1].TexCoords + c * faceVerts[2].TexCoords;
+                    color = mesh.textures[0].getColor(uv);
+                }
+                resultMat.at<int>(height - y, x) = color;
             }
         }
     }
@@ -106,5 +115,15 @@ void Rasterizer::renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
 
 void Rasterizer::enableMSAA(bool enable) {
     isMsaa = enable;
+}
+
+std::tuple<float, float, float> Rasterizer::calZhongXinCoord(glm::vec2 &pos, vector<glm::vec2> &verticals) {
+    float i = (-(pos.x - verticals[1].x) * (verticals[2].y - verticals[1].y) + (pos.y - verticals[1].y) * (verticals[2].x - verticals[1].x))
+              / (-(verticals[0].x - verticals[1].x) * (verticals[2].y - verticals[1].y) +
+                 (verticals[0].y - verticals[1].y) * (verticals[2].x - verticals[1].x));
+    float j = (-(pos.x - verticals[2].x) * (verticals[0].y - verticals[2].y) + (pos.y - verticals[2].y) * (verticals[0].x - verticals[2].x))
+              / (-(verticals[1].x - verticals[2].x) * (verticals[0].y - verticals[2].y) +
+                 (verticals[1].y - verticals[2].y) * (verticals[0].x - verticals[2].x));
+    return {i, j, 1.0 - i - j};
 }
 
