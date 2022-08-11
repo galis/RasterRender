@@ -7,6 +7,9 @@
 
 
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <opencv2/opencv.hpp>
 #include "Model.h"
 
 /**
@@ -14,11 +17,14 @@
  */
 class Rasterizer {
 private:
-    glm::mat4x4 modelMatrix, viewMatrix, projMatrix;
+    glm::mat4x4 modelMatrix, viewMatrix, projMatrix,mvpMatrix;
     glm::vec4 viewport;
+    bool isMsaa;
     vector<int> zbuffer;
 
     bool isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals);
+
+    void renderFace(const Mesh &mesh, int faceIdx, cv::Mat &resultMat);
 
 public:
 
@@ -26,11 +32,13 @@ public:
 
     void setModelMatrix(glm::mat4x4 &matrix);
 
-    void setCameraMatrix(glm::mat4x4 &matrix);
+    void setViewMatrix(glm::mat4x4 &matrix);
 
     void setProjectionMatrix(glm::mat4x4 &matrix);
 
     void setViewPort(glm::vec4 &viewport);
+
+    void enableMSAA(bool enable);
 
     void render(Model &model);
 };

@@ -47,11 +47,13 @@ public:
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
+    int facesNum;
     unsigned int VAO;
 
     Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices);
 
     Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices, const vector<Texture> &textures);
+
 };
 
 

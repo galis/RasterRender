@@ -4,11 +4,13 @@
 
 #include "Mesh.h"
 
-Mesh::Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices) : vertices(vertices), indices(indices) {}
+Mesh::Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices) : vertices(vertices), indices(indices),
+                                                                                  facesNum(indices.size() / 3) {}
 
 Mesh::Mesh(const vector<Vertex> &vertices, const vector<unsigned int> &indices, const vector<Texture> &textures) : vertices(vertices),
                                                                                                                    indices(indices),
-                                                                                                                   textures(textures) {}
+                                                                                                                   textures(textures),
+                                                                                                                   facesNum(indices.size() / 3) {}
 
 ostream &operator<<(ostream &os, const Vertex &vertex) {
     os << "Position: " << vertex.Position.x << "," << vertex.Position.y << vertex.Position.z << std::endl
