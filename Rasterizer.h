@@ -20,13 +20,13 @@ private:
     glm::mat4x4 modelMatrix, viewMatrix, projMatrix,mvpMatrix;
     glm::vec4 viewport;
     bool isMsaa;
-    vector<float> zbuffer;
+    vector<double> zbuffer;
 
     bool isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals);
 
     void renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat);
 
-    std::tuple<float,float,float> calZhongXinCoord(glm::vec2 &pos, vector<glm::vec2> &verticals);
+    glm::vec3 calZhongXinCoord(glm::vec2 &pos, vector<glm::vec2> &verticals);
 
 public:
 
@@ -42,7 +42,7 @@ public:
 
     void enableMSAA(bool enable);
 
-    void render(Model &model);
+    Mat render(Model &model);
 };
 
 

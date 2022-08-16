@@ -19,6 +19,6 @@ Texture::Texture(string &&path) : path(path) {
 }
 
 glm::vec4 Texture::getColor(glm::vec2 &uv) {
-    auto color = mat.at<Vec4b>(mat.rows - uv.y * mat.rows, uv.x * mat.cols);
+    auto color = mat.at<Vec4b>(uv.y * mat.rows, uv.x * mat.cols);
     return {color[0],color[1],color[2],color[3]};
 }

@@ -32,6 +32,8 @@ public:
     //weights from each bone
     float m_Weights[MAX_BONE_INFLUENCE];
 
+    glm::vec4 ClipPos, NormalPos;//cache
+
     friend ostream &operator<<(ostream &os, const Vertex &vertex);
 };
 
