@@ -89,8 +89,11 @@ Mesh Model::processMesh(AiMesh *mesh, const AiScene *scene) {
             vector.y = mesh->mBitangents[i].y;
             vector.z = mesh->mBitangents[i].z;
             vertex.Bitangent = vector;
-        } else
+        } else {
             vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+            vertex.Tangent = {0, 0, 0};
+            vertex.Bitangent= {0, 0, 0};
+        }
 
         vertices.push_back(vertex);
     }
@@ -110,7 +113,7 @@ Mesh Model::processMesh(AiMesh *mesh, const AiScene *scene) {
     vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
     textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
     // 3. normal maps
-    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
+    std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
     textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
     // 4. height maps
     std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
@@ -136,7 +139,7 @@ std::ostream &operator<<(std::ostream &os, const Model &model) {
     return os;
 }
 
-vector<Mesh> &Model::getMeshs()  {
+vector<Mesh> &Model::getMeshs() {
     return meshs;
 }
 

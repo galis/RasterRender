@@ -32,7 +32,8 @@ public:
     //weights from each bone
     float m_Weights[MAX_BONE_INFLUENCE];
 
-    glm::vec4 ClipPos, NormalPos;//cache
+    glm::vec4 ClipPos, NormalPos;//缓存裁剪空间坐标，归一化坐标
+    glm::vec3 ModelNormal;//应用了Model Matrix的法线
 
     friend ostream &operator<<(ostream &os, const Vertex &vertex);
 };

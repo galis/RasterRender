@@ -7,6 +7,7 @@
 
 
 #include <string>
+#include <opencv2/opencv.hpp>
 
 class Platform {
 public:
@@ -15,7 +16,10 @@ public:
     static void Debug(std::string &info);
 
     static void Debug(std::string &&info);
+
+    static void Debug(cv::Mat mat);
 };
 
+#define FastDebug(x) Platform::Debug((x));
 
 #endif //RASTERIZATIONRENDER_PLATFORM_H

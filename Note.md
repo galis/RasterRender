@@ -1,5 +1,16 @@
 # Problem
 
+## games101作业关键分析
+
+https://www.jianshu.com/p/04b1e8ffe95d
+tbn fenxi
+https://zhuanlan.zhihu.com/p/139593847
+https://zhuanlan.zhihu.com/p/412555049
+
+## 视察贴图原理
+
+https://zhuanlan.zhihu.com/p/265317045
+
 ## glm/opengl是列存储模式
 
 ```c++
@@ -13,6 +24,9 @@ std::cout << glm::to_string(modelMatrix) << std::endl;
 ```
 
 ## 判断点在三角形中
+
+利用点P与三角形各个点连成线段，然后依次和每条边叉乘。如果符号均>0或者小于0那么就在三角形内。
+值得注意的是，在右手坐标系下，>0一般是逆时针排列的点（正面）,<0(顺时针，反面)。假如叉乘结果有等于0的话，那么就在边上。
 
 ## 计算视图矩阵
 
@@ -58,6 +72,7 @@ https://zhuanlan.zhihu.com/p/403259571
 ## 背面剔除
 
 判断是否在三角形的时候，如果选择>0那么就是选择正面,<0选择反面。
+面应该默认一个顶点排列方向，一般都是逆时针。ps.旋转角度也是逆时针。
 
 ## zbuffer
 

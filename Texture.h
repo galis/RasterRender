@@ -24,6 +24,7 @@ public:
 
     void load();
 
+    Mat& asMat();
 
     glm::vec4 getColor(glm::vec2& uv);
 };

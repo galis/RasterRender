@@ -3,7 +3,6 @@
 //
 
 #include "Rasterizer.h"
-#include "Platform.h"
 #include <opencv2/opencv.hpp>
 
 void Rasterizer::setModelMatrix(glm::mat4x4 &matrix) {
@@ -28,7 +27,9 @@ Mat Rasterizer::render(Model &model) {
     //cal mvp
     mvpMatrix = projMatrix * viewMatrix * modelMatrix;
 
-    cv::Mat resultMat(cv::Size(viewport[2], viewport[3]), CV_8UC4, cv::Scalar(0, 0, 0, 0));
+    cv::Mat resultMat(cv::Size(viewport[2], viewport[3]), CV_8UC4, cv::Scalar(0, 0, 0, 255));
+//    renderFace(model.getMeshs()[0], 2898, resultMat);
+//    renderFace(model.getMeshs()[0], 4825, resultMat);
     for (Mesh &mesh:model.getMeshs()) {
         for (int i = 0; i < mesh.facesNum; i++) {
             renderFace(mesh, i, resultMat);
@@ -50,7 +51,7 @@ bool Rasterizer::isInTriangle(glm::vec2 &pos, vector<glm::vec2> &verticals) {
     auto getDir = [](glm::vec2 &p, glm::vec2 &v1, glm::vec2 &v2) {
         glm::vec3 line(v2 - v1, 0);
         glm::vec3 line2(p - v1, 0);
-        return glm::cross(line, line2).z > 0;
+        return glm::cross(line, line2).z >= 0;
     };
 
     return getDir(pos, verticals[0], verticals[1]) &&
@@ -69,6 +70,24 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
     faceVerts[1] = mesh.vertices[3 * faceIdx + 1];
     faceVerts[2] = mesh.vertices[3 * faceIdx + 2];
 
+    auto calTBN = [&](int i, int j, int k) {
+        auto v1 = faceVerts[j].Position - faceVerts[i].Position;
+        auto v2 = faceVerts[k].Position - faceVerts[i].Position;
+        auto uv1 = faceVerts[j].TexCoords - faceVerts[i].TexCoords;
+        auto uv2 = faceVerts[k].TexCoords - faceVerts[i].TexCoords;
+        auto f = 1.0f / (uv1.x * uv2.y - uv1.y * uv2.x);
+        auto tb = f * glm::mat2x2(uv2.y, -uv2.x, -uv1.y, uv1.x) * glm::mat3x2(v1.x, v2.x, v1.y, v2.y, v1.z, v2.z);
+        auto t = glm::normalize(glm::row(tb, 0));
+        auto n = faceVerts[i].Normal;
+        t = glm::normalize(t - glm::dot(t, n) * n);
+        auto b = glm::normalize(glm::cross(n, t));
+        return glm::mat3x3(t, b, n);
+    };
+
+    auto tbn0 = calTBN(0, 1, 2);
+    auto tbn1 = calTBN(1, 2, 0);
+    auto tbn2 = calTBN(2, 0, 1);
+
     //计算屏幕坐标
     vector<glm::vec2> windowPos(3);
     for (int i = 0; i < faceVerts.size(); i++) {
@@ -76,6 +95,7 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
         faceVerts[i].ClipPos = mvpMatrix * glm::vec4(faceVerts[i].Position, 1.0);
         //齐次整除
         faceVerts[i].NormalPos = faceVerts[i].ClipPos / faceVerts[i].ClipPos[3];
+        faceVerts[i].ModelNormal = modelMatrix * glm::vec4(faceVerts[i].Normal, 1.0f);
         //屏幕坐标系
         glm::vec2 screenPosition;
         screenPosition.x = (faceVerts[i].NormalPos.x + 1) * 0.5 * width;
@@ -88,8 +108,6 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
 //        Platform::Debug("\n");
     }
 
-//    Platform::Debug("====");
-
     //计算roi
     float xMin = width, yMin = height, xMax = -1, yMax = -1;
     for (glm::vec2 &ver:windowPos) {
@@ -97,6 +115,7 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
         yMin = min(yMin, ver.y);
         xMax = max(xMax, ver.x);
         yMax = max(yMax, ver.y);
+        std::cout << glm::to_string(ver) << std::endl;
     }
     xMin = floor(xMin);
     yMin = floor(yMin);
@@ -109,23 +128,31 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
             cur.y = y;
             //上色。。。
             if (isInTriangle(cur, windowPos)) {
-                glm::vec4 color(0xff, 0xff, 0, 0);//ARGB
                 if (!mesh.textures.empty()) {
                     glm::vec3 bc = calZhongXinCoord(cur, windowPos);
                     float zn = 1.0f / (bc[0] / faceVerts[0].ClipPos[3] + bc[1] / faceVerts[1].ClipPos[3] + bc[2] / faceVerts[2].ClipPos[3]);
                     auto zp = zn * glm::vec3(bc[0] / faceVerts[0].ClipPos[3], bc[1] / faceVerts[1].ClipPos[3], bc[2] / faceVerts[2].ClipPos[3]);
-                    glm::vec2 uv = zp[0] * faceVerts[0].TexCoords + zp[1] * faceVerts[1].TexCoords + zp[2] * faceVerts[2].TexCoords;
-                    glm::vec3 normal = zp[0] * faceVerts[0].Normal + zp[1] * faceVerts[1].Normal + zp[2] * faceVerts[2].Normal;
                     int zbufferIdx = x + width * y;
-                    glm::vec3 dirlight(0, 0, 1);
-                    float s = max(0.0f, glm::dot(glm::normalize(dirlight), glm::normalize(normal)));
-                    float ambient = 0.1f;
-                    float diffuse = s;
                     if (zn < zbuffer[zbufferIdx]) {
+                        glm::vec2 uv = zp[0] * faceVerts[0].TexCoords + zp[1] * faceVerts[1].TexCoords + zp[2] * faceVerts[2].TexCoords;
+                        glm::vec3 faceNormal = glm::normalize(
+                                zp[0] * faceVerts[0].ModelNormal + zp[1] * faceVerts[1].ModelNormal + zp[2] * faceVerts[2].ModelNormal);
+                        glm::vec3 srcNormal = mesh.textures[2].getColor(uv);
+                        glm::vec3 specular = mesh.textures[1].getColor(uv);
+                        auto tbn = zp[0] * tbn0 + zp[1] * tbn1 + zp[2] * tbn2;
+                        glm::vec3 normal = glm::normalize(tbn * (glm::normalize(srcNormal * 2.0f - 1.0f)));
+
+                        //cal normal
+                        glm::vec3 lightPos(0, 0, 20);
+                        float s = max(0.0f, glm::dot(glm::normalize(lightPos), normal));
+                        float ambient = 0.1f;
+                        float diffuse = 0.4f * s;
+                        glm::vec3 color = {255, 0, 0};//RGB
+//                        color = (normal + 1.0f) * 0.5f;
                         color = mesh.textures[0].getColor(uv);
-//                        std::cout << "faceIdx：" << faceIdx << "@zn:" << zn << "@buffer:" << zbuffer[zbufferIdx] << glm::to_string(normal)<< endl;
-                        color *= min(1.0f, ambient + diffuse);
-                        resultMat.at<Vec4b>(height - y, x) = Vec4b(color[0], color[1], color[2], color[3]);
+                        color *= min(1.0f, ambient + diffuse + specular.x * 0.5f);
+                        color *= 255.f;
+                        resultMat.at<Vec4b>(height - y, x) = Vec4b(color[0], color[1], color[2], 255.f);
                         zbuffer[zbufferIdx] = zn;
                     }
                 }
