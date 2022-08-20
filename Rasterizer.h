@@ -19,6 +19,7 @@ class Rasterizer {
 private:
     glm::mat4x4 modelMatrix, viewMatrix, projMatrix,mvpMatrix;
     glm::vec4 viewport;
+    glm::vec3 cameraPos;
     bool isMsaa;
     vector<double> zbuffer;
 
@@ -39,6 +40,8 @@ public:
     void setProjectionMatrix(glm::mat4x4 &matrix);
 
     void setViewPort(glm::vec4 &viewport);
+
+    void setCameraPos(glm::vec3& pos);
 
     void enableMSAA(bool enable);
 

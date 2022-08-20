@@ -137,20 +137,29 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
                         glm::vec2 uv = zp[0] * faceVerts[0].TexCoords + zp[1] * faceVerts[1].TexCoords + zp[2] * faceVerts[2].TexCoords;
                         glm::vec3 faceNormal = glm::normalize(
                                 zp[0] * faceVerts[0].ModelNormal + zp[1] * faceVerts[1].ModelNormal + zp[2] * faceVerts[2].ModelNormal);
+                        glm::vec3 position = glm::normalize(
+                                zp[0] * faceVerts[0].Position + zp[1] * faceVerts[1].Position + zp[2] * faceVerts[2].Position);
                         glm::vec3 srcNormal = mesh.textures[2].getColor(uv);
-                        glm::vec3 specular = mesh.textures[1].getColor(uv);
+                        glm::vec3 specularColor = mesh.textures[1].getColor(uv);
                         auto tbn = zp[0] * tbn0 + zp[1] * tbn1 + zp[2] * tbn2;
                         glm::vec3 normal = glm::normalize(tbn * (glm::normalize(srcNormal * 2.0f - 1.0f)));
 
                         //cal normal
-                        glm::vec3 lightPos(0, 0, 20);
-                        float s = max(0.0f, glm::dot(glm::normalize(lightPos), normal));
+                        glm::vec3 lightPos(0, 0, 10);
+                        glm::vec3 lightDir = glm::normalize(lightPos - position);
+                        glm::vec3 viewDir = glm::normalize(cameraPos - position);
+                        glm::vec3 reflectDir = glm::normalize(2 * glm::dot(lightDir, normal) * normal - lightDir);
+
                         float ambient = 0.1f;
-                        float diffuse = 0.4f * s;
+                        float s = max(0.0f, glm::dot(glm::normalize(lightPos), normal));
+                        float diffuse = 0.6f * s;
+                        float specular = pow(max(glm::dot(reflectDir, viewDir), 0.0f), 16) * specularColor.x * 0.3f;
+//                        float specular = 0;
+
                         glm::vec3 color = {255, 0, 0};//RGB
 //                        color = (normal + 1.0f) * 0.5f;
                         color = mesh.textures[0].getColor(uv);
-                        color *= min(1.0f, ambient + diffuse + specular.x * 0.5f);
+                        color *= min(1.0f, ambient + diffuse + specular);
                         color *= 255.f;
                         resultMat.at<Vec4b>(height - y, x) = Vec4b(color[0], color[1], color[2], 255.f);
                         zbuffer[zbufferIdx] = zn;
@@ -173,5 +182,9 @@ glm::vec3 Rasterizer::calZhongXinCoord(glm::vec2 &pos, vector<glm::vec2> &vertic
               / (-(verticals[1].x - verticals[2].x) * (verticals[0].y - verticals[2].y) +
                  (verticals[1].y - verticals[2].y) * (verticals[0].x - verticals[2].x));
     return {i, j, 1.0 - i - j};
+}
+
+void Rasterizer::setCameraPos(glm::vec3 &pos) {
+    cameraPos = pos;
 }
 

@@ -12,9 +12,11 @@ int main() {
     model.load();
     Rasterizer rasterizer;
     glm::vec4 viewport(0, 0, WIDTH, HEIGHT);
+    glm::vec3 cameraPos = glm::vec3(0, 0, 10);
     glm::mat4x4 modelMatrix = glm::translate(glm::identity<glm::mat4x4>(), {0.0, 0, 0});
-    glm::mat4x4 viewMatrix = glm::lookAt(glm::vec3(-10, 0, -10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+    glm::mat4x4 viewMatrix = glm::lookAt(cameraPos, glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
     glm::mat4x4 projMatrix = glm::perspective(45.f, 1.f, 0.1f, 100.f);
+    rasterizer.setCameraPos(cameraPos);
     rasterizer.setModelMatrix(modelMatrix);
     rasterizer.setViewMatrix(viewMatrix);
     rasterizer.setProjectionMatrix(projMatrix);
