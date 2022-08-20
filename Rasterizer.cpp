@@ -153,7 +153,7 @@ void Rasterizer::renderFace(Mesh &mesh, int faceIdx, cv::Mat &resultMat) {
                         float ambient = 0.1f;
                         float s = max(0.0f, glm::dot(glm::normalize(lightPos), normal));
                         float diffuse = 0.6f * s;
-                        float specular = pow(max(glm::dot(reflectDir, viewDir), 0.0f), 16) * specularColor.x * 0.3f;
+                        float specular = pow(max(glm::dot(reflectDir, viewDir), 0.0f), 32) * specularColor.x * 0.3f;
 //                        float specular = 0;
 
                         glm::vec3 color = {255, 0, 0};//RGB
